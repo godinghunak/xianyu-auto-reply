@@ -12,7 +12,8 @@ RUN pip config set global.index-url https://pypi.tuna.tsinghua.edu.cn/simple
 
 WORKDIR /app
 
-RUN apt-get update && apt-get install -y curl ca-certificates \
+# 合并apt安装步骤，减少镜像层数
+RUN apt-get update && apt-get install -y --no-install-recommends curl ca-certificates \
     && update-ca-certificates \
     && rm -rf /var/lib/apt/lists/*
 
@@ -30,7 +31,7 @@ open('/tmp/requirements.txt','w').write('\n'.join(deps))" && \
 
 RUN python -m playwright install --with-deps chromium
 
-# 创建日志目录
+# 创建日志目录和上传目录
 RUN mkdir -p /app/backend-web/logs /app/static/uploads
 
 EXPOSE 8089
@@ -38,5 +39,8 @@ EXPOSE 8089
 ENV PYTHONUNBUFFERED=1
 ENV PYTHONPATH=/app
 ENV TZ=Asia/Shanghai
+# 设置语言环境，避免中文日志乱码
+ENV LANG=C.UTF-8
+ENV LC_ALL=C.UTF-8
 
 CMD ["python", "backend-web/main.py"]
